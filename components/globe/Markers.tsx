@@ -23,12 +23,12 @@ const COLORS = {
 } as const;
 
 const SIZE = {
-  single: 0.0065,
-  stack: 0.009,
-  aircraftR: 0.004,
-  aircraftH: 0.011,
-  shipR: 0.0035,
-  shipH: 0.009,
+  single: 0.012,
+  stack: 0.016,
+  aircraftR: 0.007,
+  aircraftH: 0.02,
+  shipR: 0.006,
+  shipH: 0.016,
 } as const;
 
 interface MarkersProps {
@@ -79,6 +79,9 @@ export function Markers({
   );
 
   const deep = cameraZoom >= 2.5;
+  // Farther cameras need larger pins so they stay readable in prod / orbit view.
+  const lod =
+    cameraZoom < 1.1 ? 2.4 : cameraZoom < 1.6 ? 1.75 : cameraZoom < 2.2 ? 1.35 : 1;
 
   return (
     <group>
@@ -97,19 +100,25 @@ export function Markers({
             : COLORS.mixed;
         const active = selectedHere || isOpen || isHovered;
         const stackR =
-          SIZE.stack + Math.min(0.006, Math.log2(n + 1) * 0.0018);
+          SIZE.stack + Math.min(0.008, Math.log2(n + 1) * 0.0022);
+        const scale = lod * (active ? 1.3 : deep && !isMulti ? 1.12 : 1);
 
         return (
           <Billboard key={cluster.id} position={pos} follow>
             <group
               onPointerOver={(ev: ThreeEvent<PointerEvent>) => {
                 ev.stopPropagation();
+                // Touch uses tap→detail; hover tooltips are mouse-only.
+                const pt = ev.nativeEvent.pointerType;
+                if (pt && pt !== "mouse") return;
                 document.body.style.cursor = "pointer";
                 setHoverClusterId(cluster.id);
                 onHover(cluster.events[0] ?? null);
               }}
               onPointerOut={(ev: ThreeEvent<PointerEvent>) => {
                 ev.stopPropagation();
+                const pt = ev.nativeEvent.pointerType;
+                if (pt && pt !== "mouse") return;
                 document.body.style.cursor = "auto";
                 setHoverClusterId(null);
                 onHover(null);
@@ -132,8 +141,22 @@ export function Markers({
                   onSelect(cluster.events[0]);
                 }
               }}
-              scale={active ? 1.25 : deep && !isMulti ? 1.12 : 1}
+              scale={scale}
             >
+              {/* Soft halo so pins read against bright land textures */}
+              <mesh position={[0, 0, -0.0004]}>
+                <circleGeometry
+                  args={[isMulti ? stackR * 1.55 : SIZE.single * 1.7, 20]}
+                />
+                <meshBasicMaterial
+                  color={color}
+                  transparent
+                  opacity={active ? 0.28 : 0.16}
+                  depthWrite={false}
+                  depthTest={false}
+                  side={DoubleSide}
+                />
+              </mesh>
               {isMulti ? (
                 <StackPin
                   radius={stackR}
@@ -142,34 +165,40 @@ export function Markers({
                   active={active}
                 />
               ) : cluster.primaryType === "aircraft" ? (
-                <mesh rotation={[0, 0, Math.PI]}>
+                <mesh rotation={[0, 0, Math.PI]} renderOrder={2}>
                   <coneGeometry
                     args={[SIZE.aircraftR, SIZE.aircraftH, 3]}
                   />
                   <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={active ? 1 : 0.88}
+                    opacity={active ? 1 : 0.92}
+                    depthTest={false}
+                    depthWrite={false}
                   />
                 </mesh>
               ) : cluster.primaryType === "ship" ? (
-                <mesh>
+                <mesh renderOrder={2}>
                   <capsuleGeometry
                     args={[SIZE.shipR, SIZE.shipH, 3, 6]}
                   />
                   <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={active ? 1 : 0.88}
+                    opacity={active ? 1 : 0.92}
+                    depthTest={false}
+                    depthWrite={false}
                   />
                 </mesh>
               ) : (
-                <mesh>
-                  <circleGeometry args={[SIZE.single, 16]} />
+                <mesh renderOrder={2}>
+                  <circleGeometry args={[SIZE.single, 20]} />
                   <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={active ? 1 : 0.85}
+                    opacity={active ? 1 : 0.9}
+                    depthTest={false}
+                    depthWrite={false}
                     side={DoubleSide}
                   />
                 </mesh>
@@ -197,30 +226,36 @@ function StackPin({
   const ringInner = radius * 0.72;
   return (
     <group>
-      <mesh>
+      <mesh renderOrder={2}>
         <circleGeometry args={[ringOuter, 24]} />
         <meshBasicMaterial
           color="#070b12"
           transparent
-          opacity={0.92}
+          opacity={0.94}
+          depthTest={false}
+          depthWrite={false}
           side={DoubleSide}
         />
       </mesh>
-      <mesh position={[0, 0, 0.0008]}>
+      <mesh position={[0, 0, 0.0008]} renderOrder={3}>
         <ringGeometry args={[ringInner, ringOuter, 24]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={active ? 1 : 0.9}
+          opacity={active ? 1 : 0.92}
+          depthTest={false}
+          depthWrite={false}
           side={DoubleSide}
         />
       </mesh>
-      <mesh position={[0, 0, 0.0012]}>
+      <mesh position={[0, 0, 0.0012]} renderOrder={4}>
         <circleGeometry args={[ringInner * 0.45, 12]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={0.35 + Math.min(0.45, count * 0.03)}
+          opacity={0.4 + Math.min(0.45, count * 0.03)}
+          depthTest={false}
+          depthWrite={false}
           side={DoubleSide}
         />
       </mesh>

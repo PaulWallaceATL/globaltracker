@@ -90,12 +90,13 @@ export function CommandHud() {
                 loading ? "text-[var(--accent)]" : "text-[#7ddea3]"
               }`}
             >
-              <i
-                className={`h-1.5 w-1.5 rounded-full ${
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${
                   loading
                     ? "animate-pulse bg-[var(--accent)]"
                     : "bg-[#7ddea3] shadow-[0_0_8px_#7ddea3]"
                 }`}
+                aria-hidden
               />
               {loading ? "Scanning" : hasSearched ? "Live" : "Pulse"}
             </span>

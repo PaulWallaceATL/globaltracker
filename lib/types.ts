@@ -33,6 +33,12 @@ export interface ViewportLabel {
   subtitle: string;
 }
 
+/** Screen-space anchor for the hover intel tooltip. */
+export interface HoverScreen {
+  x: number;
+  y: number;
+}
+
 export interface NewsArticle {
   id: string;
   title: string;

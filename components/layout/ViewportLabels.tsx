@@ -98,7 +98,7 @@ export function ViewportLabels() {
                   setHoveredEvent(null);
                 }}
                 onClick={() => selectEvent(event)}
-                className="max-w-[7.5rem] truncate border px-1.5 py-0.5 text-left text-[10px] font-semibold shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
+                className="max-w-[7.5rem] truncate border px-1.5 py-0.5 text-left text-[10px] font-semibold shadow-[0_4px_12px_rgba(0,0,0,0.45)] max-md:max-w-[9rem] max-md:px-2 max-md:py-1 max-md:text-[11px]"
                 style={{
                   borderColor: selected ? color : `${color}66`,
                   background: selected
@@ -106,7 +106,7 @@ export function ViewportLabels() {
                     : "rgba(8,14,22,0.9)",
                   color,
                 }}
-                title={`${lab.title} — hover for intel, click to open`}
+                title={`${lab.title} — open intel`}
               >
                 {lab.title}
               </button>

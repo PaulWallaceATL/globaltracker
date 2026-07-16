@@ -116,9 +116,10 @@ export function LayerToggles() {
             className="inline-flex items-center gap-1 text-[9px] text-[var(--muted)]"
             title={layer.hint}
           >
-            <i
-              className="h-1.5 w-1.5 shrink-0 rounded-full"
+            <span
+              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
               style={{ background: layer.color }}
+              aria-hidden
             />
             {layer.label.replace(/s$/, "")}
           </span>

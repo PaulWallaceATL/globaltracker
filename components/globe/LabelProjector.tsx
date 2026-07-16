@@ -14,14 +14,16 @@ const MIN_GAP_PX = 96;
 const REPICK_MS = 450;
 
 /** Safe inset so chips stay clear of search / news / layers / hud. */
-function insets(w: number, h: number) {
+function insets(w: number) {
+  const phone = w < 640;
   const narrow = w < 900;
-  return {
-    left: narrow ? 12 : 170,
-    right: narrow ? 12 : 290,
-    top: narrow ? 100 : 118,
-    bottom: narrow ? 200 : 150,
-  };
+  if (phone) {
+    return { left: 10, right: 10, top: 108, bottom: 220 };
+  }
+  if (narrow) {
+    return { left: 12, right: 12, top: 100, bottom: 200 };
+  }
+  return { left: 170, right: 290, top: 118, bottom: 150 };
 }
 
 /**
@@ -40,8 +42,40 @@ export function LabelProjector() {
     const state = useTrackerStore.getState();
     const zoom = state.cameraZoom;
     const setViewportLabels = state.setViewportLabels;
+    const setHoverScreen = state.setHoverScreen;
+    const hovered = state.hoveredEvent;
+    const w = size.width;
+    const h = size.height;
+    const camDir = camera.position.clone().normalize();
+    const v = scratch.current;
 
-    if (zoom < 2.45) {
+    // Keep hover tooltip pinned to the globe pin as the camera moves.
+    if (hovered) {
+      const world = latLngToVector3(hovered.lat, hovered.lng, RADIUS);
+      v.copy(world).normalize();
+      const facing = camDir.dot(v);
+      if (facing >= 0.15) {
+        v.copy(world).project(camera);
+        if (v.z >= -1 && v.z <= 1) {
+          const hx = (v.x * 0.5 + 0.5) * w;
+          const hy = (-v.y * 0.5 + 0.5) * h;
+          const prev = state.hoverScreen;
+          if (
+            !prev ||
+            Math.abs(prev.x - hx) > 0.5 ||
+            Math.abs(prev.y - hy) > 0.5
+          ) {
+            setHoverScreen({ x: Math.round(hx), y: Math.round(hy) });
+          }
+        } else if (state.hoverScreen) {
+          setHoverScreen(null);
+        }
+      } else if (state.hoverScreen) {
+        setHoverScreen(null);
+      }
+    }
+
+    if (zoom < 2.2) {
       if (state.viewportLabels.length > 0) setViewportLabels([]);
       stickyIds.current = [];
       lastPayload.current = "";
@@ -56,11 +90,7 @@ export function LabelProjector() {
       return false;
     });
 
-    const w = size.width;
-    const h = size.height;
-    const pad = insets(w, h);
-    const camDir = camera.position.clone().normalize();
-    const v = scratch.current;
+    const pad = insets(w);
     const now = performance.now();
     const zoomBand = zoom >= 3.2 ? 2 : zoom >= 2.7 ? 1 : 0;
     const forceRepick =

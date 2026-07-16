@@ -13,10 +13,13 @@ import { RightRail } from "@/components/layout/RightRail";
 import { SmartSearch } from "@/components/layout/SmartSearch";
 import { LensSwitcher } from "@/components/lenses/LensSwitcher";
 import { NewsPreview } from "@/components/news/NewsPreview";
+import { HoverTooltip } from "@/components/layout/HoverTooltip";
 import { ViewportLabels } from "@/components/layout/ViewportLabels";
+import { MobileChrome } from "@/components/mobile/MobileChrome";
 import { SituationsRail } from "@/components/situation/SituationsRail";
 import { LensToast } from "@/components/lenses/LensToast";
 import { useTrackerStore } from "@/store/tracker-store";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const GlobeScene = dynamic(
   () =>
@@ -46,6 +49,7 @@ export function AppShell() {
   const loadBookmarks = useTrackerStore((s) => s.loadBookmarks);
   const loadHistory = useTrackerStore((s) => s.loadHistory);
   const [situationsOpen, setSituationsOpen] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     syncFromUrl();
@@ -100,23 +104,35 @@ export function AppShell() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[rgba(4,8,14,0.55)] to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(4,8,14,0.5)] to-transparent" />
 
-      <SmartSearch onOpenSituations={() => setSituationsOpen(true)} />
-      <LensSwitcher />
-      <SituationsRail
-        open={situationsOpen}
-        onClose={() => setSituationsOpen(false)}
-      />
-      <EntityGraphPanel offsetForSituations={situationsRailVisible} />
-      <ViewportLabels />
-      <RightRail />
-      <LayerToggles />
-      <CommandHud />
-      <ClusterStackPanel />
-      <EventDetailCard />
-      <PlaceDetailCard />
-      <TopicDetailCard />
-      <NewsPreview />
-      <LensToast />
+      {isMobile === null ? null : isMobile ? (
+        <>
+          <MobileChrome />
+          <ViewportLabels />
+          <NewsPreview />
+          <LensToast />
+        </>
+      ) : (
+        <>
+          <SmartSearch onOpenSituations={() => setSituationsOpen(true)} />
+          <LensSwitcher />
+          <SituationsRail
+            open={situationsOpen}
+            onClose={() => setSituationsOpen(false)}
+          />
+          <EntityGraphPanel offsetForSituations={situationsRailVisible} />
+          <ViewportLabels />
+          <HoverTooltip />
+          <RightRail />
+          <LayerToggles />
+          <CommandHud />
+          <ClusterStackPanel />
+          <EventDetailCard />
+          <PlaceDetailCard />
+          <TopicDetailCard />
+          <NewsPreview />
+          <LensToast />
+        </>
+      )}
     </div>
   );
 }

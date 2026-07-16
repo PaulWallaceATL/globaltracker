@@ -100,6 +100,11 @@ function GlobeControls() {
       enableDamping
       dampingFactor={0.09}
       autoRotate={false}
+      // One-finger rotate, two-finger pinch zoom (mobile)
+      touches={{
+        ONE: THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_ROTATE,
+      }}
     />
   );
 }

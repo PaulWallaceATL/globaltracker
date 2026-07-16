@@ -16,6 +16,7 @@ import type {
   NewsArticle,
   Place,
   PopulationPoint,
+  HoverScreen,
   RelatedGraph,
   SearchHit,
   Situation,
@@ -53,6 +54,8 @@ interface TrackerState {
   related: RelatedGraph | null;
   searchHits: SearchHit[];
   hoveredEvent: TrackerEvent | null;
+  /** Pixel position of hovered pin (kept in sync by LabelProjector). */
+  hoverScreen: HoverScreen | null;
   previewArticle: NewsArticle | null;
   stackPanel: {
     id: string;
@@ -89,6 +92,7 @@ interface TrackerState {
   setQuery: (query: string) => void;
   selectEvent: (event: TrackerEvent | null) => void;
   setHoveredEvent: (event: TrackerEvent | null) => void;
+  setHoverScreen: (pos: HoverScreen | null) => void;
   setStackPanel: (
     panel: {
       id: string;
@@ -190,6 +194,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
   related: null,
   searchHits: [],
   hoveredEvent: null,
+  hoverScreen: null,
   previewArticle: null,
   stackPanel: null,
   loading: false,
@@ -230,6 +235,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
         selectedPlace: null,
         selectedTopic: null,
         hoveredEvent: null,
+        hoverScreen: null,
         stackPanel: null,
         selection,
       };
@@ -242,7 +248,14 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     get().pushUrlState();
   },
 
-  setHoveredEvent: (event) => set({ hoveredEvent: event }),
+  setHoveredEvent: (event) =>
+    set(
+      event
+        ? { hoveredEvent: event }
+        : { hoveredEvent: null, hoverScreen: null },
+    ),
+
+  setHoverScreen: (pos) => set({ hoverScreen: pos }),
 
   setStackPanel: (panel) =>
     set({
