@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #070b12;
+  --panel: #0e1520;
+  --fg: #e8eef6;
+  --fg-dim: #b7c3d4;
+  --muted: #6f7f94;
+  --border: rgba(140, 168, 196, 0.18);
+  --accent: #c4a35a;
+  --accent-fg: #14110b;
+  --danger: #e85d4c;
+  --background: var(--bg);
+  --foreground: var(--fg);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-display);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 168, 196, 0.25);
+  border-radius: 999px;
+}
+
+/* Marker hover tooltips (rendered via drei Html) */
+.marker-tooltip {
+  width: max-content;
+  max-width: 240px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(140, 168, 196, 0.28);
+  background: rgba(8, 14, 22, 0.94);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  color: #e8eef6;
+  font-family: var(--font-body), sans-serif;
+  transform: translateY(-8px);
+  backdrop-filter: blur(8px);
+}
+
+.marker-tooltip__type {
+  font-family: var(--font-display), sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.marker-tooltip__src {
+  color: #6f7f94;
+}
+
+.marker-tooltip__body {
+  margin-top: 0.3rem;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #b7c3d4;
+}
+
+.marker-tooltip__meta {
+  margin-top: 0.35rem;
+  font-size: 10px;
+  color: #6f7f94;
+  font-variant-numeric: tabular-nums;
+}
+
+.marker-tooltip__hint {
+  margin-top: 0.35rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c4a35a;
+}
+
+.command-hud {
+  background-image: linear-gradient(
+    180deg,
+    rgba(196, 163, 90, 0.06),
+    transparent 40%
+  );
+}

@@ -1,0 +1,10 @@
+# Supabase local config placeholder — link a project with `supabase link`
+# and apply migrations with `supabase db push`.
+
+project_id = "globaltracker"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
