@@ -137,7 +137,7 @@ async function fetchAdsb(bbox: BBox, limit: number): Promise<TrackerEvent[]> {
 }
 
 async function fetchOpenSky(bbox: BBox): Promise<TrackerEvent[]> {
-  // OpenSky often rate-limits / times out on planet queries — skip those.
+  // OpenSky often rate-limits / times out — skip planet queries; keep country short.
   if (isPlanetBBox(bbox)) return [];
 
   const { lamin, lomin, lamax, lomax } = bboxToLaminLomin(bbox);
@@ -145,7 +145,7 @@ async function fetchOpenSky(bbox: BBox): Promise<TrackerEvent[]> {
   const data = await fetchJsonSafe<{
     time?: number;
     states?: (string | number | boolean | null)[][] | null;
-  }>(url, undefined, 12000);
+  }>(url, undefined, 4000);
   if (!data) return [];
   return normalizeOpenSky(data).slice(0, 100);
 }

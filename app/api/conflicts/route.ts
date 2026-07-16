@@ -126,7 +126,7 @@ async function fetchGdelt(
   try {
     const json = await fetchJsonSafe<{
       articles?: Parameters<typeof normalizeGdelt>[0];
-    }>(jsonUrl, undefined, 12000);
+    }>(jsonUrl, undefined, 14000);
 
     if (json?.articles?.length) {
       return normalizeGdelt(json.articles, fallbackLat, fallbackLng);

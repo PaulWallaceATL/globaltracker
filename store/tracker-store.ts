@@ -501,11 +501,12 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
       type NewsPayload = { articles?: NewsArticle[] };
 
       const [conflicts, deployments, newsJson] = await Promise.all([
-        fetchJson<EventsPayload>("/api/conflicts?q=conflict&limit=60", 14000),
-        fetchJson<EventsPayload>("/api/deployments?q=conflict&limit=60", 12000),
+        fetchJson<EventsPayload>("/api/conflicts?q=conflict&limit=60", 22000),
+        // Prefer hub-sampled global ADSB (no country filter) so pulse always has pins
+        fetchJson<EventsPayload>("/api/deployments?limit=80", 22000),
         fetchJson<NewsPayload>(
           "/api/news?q=conflict%20OR%20war%20OR%20airstrike&limit=10",
-          10000,
+          12000,
         ),
       ]);
 
@@ -752,7 +753,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
 
       const newsP = fetchJson<NewsPayload>(
         `/api/news?${newsParams.toString()}`,
-        10000,
+        14000,
       ).then((newsJson) => {
         newsArticles = (newsJson?.articles ?? []).filter(
           (a) => a.source !== "demo",
@@ -762,7 +763,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
 
       const deploymentsP = fetchJson<EventsPayload>(
         `/api/deployments?${params.toString()}`,
-        10000,
+        22000,
       ).then((deploymentsJson) => {
         deployEvents = (deploymentsJson?.events ?? []).filter(
           (e) => e.source !== "demo",
@@ -772,7 +773,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
 
       const conflictsP = fetchJson<EventsPayload>(
         `/api/conflicts?${params.toString()}`,
-        14000,
+        22000,
       ).then((conflictsJson) => {
         conflictEvents = (conflictsJson?.events ?? []).filter(
           (e) => e.source !== "demo",
