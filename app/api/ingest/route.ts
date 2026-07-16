@@ -1,5 +1,4 @@
 import { persistIngest, readGraphSnapshot } from "@/lib/graph/persist";
-import { getEnvKey } from "@/lib/env";
 import type { NewsArticle, TrackerEvent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +6,8 @@ export const maxDuration = 30;
 
 /** Persist client-supplied live events only — never invent demo rows. */
 export async function POST(req: Request) {
-  const secret = getEnvKey("INGEST_SECRET");
+  // Optional — skip quietly when unset (persist is best-effort).
+  const secret = process.env.INGEST_SECRET?.trim() || null;
   const header = req.headers.get("x-ingest-secret");
   if (secret && header !== secret) {
     return Response.json({ error: "unauthorized" }, { status: 401 });

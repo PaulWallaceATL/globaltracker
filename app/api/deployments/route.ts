@@ -88,15 +88,47 @@ function parseBBox(params: URLSearchParams): BBox | null {
   return { minLat, maxLat, minLng, maxLng };
 }
 
+/** Busy air corridors — used when the request bbox is planet-scale. */
+const ADSB_HUBS: { lat: number; lng: number; distNm: number }[] = [
+  { lat: 51.47, lng: -0.46, distNm: 180 }, // London
+  { lat: 40.64, lng: -73.78, distNm: 180 }, // NYC
+  { lat: 25.25, lng: 55.36, distNm: 200 }, // Dubai
+  { lat: 35.55, lng: 139.78, distNm: 180 }, // Tokyo
+  { lat: 50.03, lng: 8.57, distNm: 160 }, // Frankfurt
+  { lat: 33.94, lng: -118.41, distNm: 180 }, // LAX
+];
+
+function isPlanetBBox(bbox: BBox): boolean {
+  return (
+    bbox.maxLat - bbox.minLat > 80 || bbox.maxLng - bbox.minLng > 160
+  );
+}
+
 async function fetchAdsb(bbox: BBox, limit: number): Promise<TrackerEvent[]> {
-  // ADSB.lol point/radius around bbox center
+  // World-scale bbox centers in empty ocean — sample busy hubs instead.
+  if (isPlanetBBox(bbox)) {
+    const batches = await Promise.all(
+      ADSB_HUBS.map(async (hub) => {
+        const url = `https://api.adsb.lol/v2/lat/${hub.lat}/lon/${hub.lng}/dist/${hub.distNm}`;
+        const data = await fetchJsonSafe<{ ac?: unknown[] }>(
+          url,
+          undefined,
+          10000,
+        );
+        if (!data) return [] as TrackerEvent[];
+        return normalizeAdsb(data as Parameters<typeof normalizeAdsb>[0]);
+      }),
+    );
+    return dedupeEvents(batches.flat(), Math.min(limit, 160));
+  }
+
   const lat = (bbox.minLat + bbox.maxLat) / 2;
   const lng = (bbox.minLng + bbox.maxLng) / 2;
   const latSpan = Math.max(bbox.maxLat - bbox.minLat, 2);
   const distNm = Math.min(Math.max(latSpan * 60, 50), 250);
 
   const url = `https://api.adsb.lol/v2/lat/${lat.toFixed(4)}/lon/${lng.toFixed(4)}/dist/${Math.round(distNm)}`;
-  const data = await fetchJsonSafe<{ ac?: unknown[] }>(url);
+  const data = await fetchJsonSafe<{ ac?: unknown[] }>(url, undefined, 10000);
   if (!data) return [];
 
   return normalizeAdsb(data as Parameters<typeof normalizeAdsb>[0])
@@ -105,12 +137,15 @@ async function fetchAdsb(bbox: BBox, limit: number): Promise<TrackerEvent[]> {
 }
 
 async function fetchOpenSky(bbox: BBox): Promise<TrackerEvent[]> {
+  // OpenSky often rate-limits / times out on planet queries — skip those.
+  if (isPlanetBBox(bbox)) return [];
+
   const { lamin, lomin, lamax, lomax } = bboxToLaminLomin(bbox);
   const url = `https://opensky-network.org/api/states/all?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
   const data = await fetchJsonSafe<{
     time?: number;
     states?: (string | number | boolean | null)[][] | null;
-  }>(url);
+  }>(url, undefined, 12000);
   if (!data) return [];
   return normalizeOpenSky(data).slice(0, 100);
 }
